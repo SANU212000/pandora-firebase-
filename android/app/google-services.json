@@ -1,0 +1,82 @@
+{
+  "project_info": {
+    "project_number": "296107200926",
+    "project_id": "pandora-application-df074",
+    "storage_bucket": "pandora-application-df074.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:296107200926:android:7d43e3cda374e31981068f",
+        "android_client_info": {
+          "package_name": "com.example.todo_list"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "296107200926-f65d6gt900jrmppc7mm8vtrc4cidpkf7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQhu7M3q9OwFy-gU8BOouT3n3kc-pPlWE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "296107200926-f65d6gt900jrmppc7mm8vtrc4cidpkf7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "296107200926-ts3sve3c776qnndaq6ffq6rvfitiqpp5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.trailauth"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:296107200926:android:41420d371d78f3e681068f",
+        "android_client_info": {
+          "package_name": "com.example.trailauth"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "296107200926-f65d6gt900jrmppc7mm8vtrc4cidpkf7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQhu7M3q9OwFy-gU8BOouT3n3kc-pPlWE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "296107200926-f65d6gt900jrmppc7mm8vtrc4cidpkf7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "296107200926-ts3sve3c776qnndaq6ffq6rvfitiqpp5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.trailauth"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
