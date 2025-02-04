@@ -3,34 +3,33 @@ class Todo {
   String title;
   bool isCompleted;
   String userId;
+  String task;
 
   Todo({
     required this.id,
     required this.title,
-    this.isCompleted = false, // Default value
-    required this.userId, required String task,
+    required this.isCompleted,
+    required this.userId,
+    required this.task,
   });
 
-  // Convert Firestore Document to Todo
   factory Todo.fromJson(Map<String, dynamic> json) {
-    if (json['id'] == null || json['title'] == null || json['userId'] == null) {
-      throw ArgumentError('Missing required fields: id, title, or userId');
-    }
     return Todo(
-      id: json['id'],
-      title: json['title'],
+      id: json['id'] ?? '',
+      title: json['title'] ?? '',
       isCompleted: json['isCompleted'] ?? false,
-      userId: json['userId'], task: 'task'
+      userId: json['userId'] ?? '',
+      task: json['task'] ?? '',
     );
   }
 
-  // Convert Todo to JSON for Firestore
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'title': title,
       'isCompleted': isCompleted,
       'userId': userId,
+      'task': task,
     };
   }
 }

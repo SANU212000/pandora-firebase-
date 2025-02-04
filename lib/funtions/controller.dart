@@ -4,37 +4,29 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'todo_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:get_storage/get_storage.dart';
 
 class TodoController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  var todos = <Todo>[].obs;
+  var isLoading = false.obs;
 
-  var userId = ''.obs; 
-  var todos = <Todo>[].obs; 
-  var isLoading = true.obs;
-
-  @override
-  void onInit() {
-    super.onInit();
-    fetchTodos();
-  }
-
-  Future<void> fetchTodos() async {
+  Future<void> fetchTodos(String userEmail) async {
     isLoading(true);
     try {
-      final userId = Get.find<UserController>().userId.value;
-      print('Fetching todos for userId: $userId'); 
+      if (userEmail.isEmpty) {
+        print("Error: User email is empty");
+        return;
+      }
 
       final querySnapshot = await _firestore
-          .collection('users') 
-          .doc(userId) 
-          .collection('todos') 
-          .get(); 
+          .collection('users')
+          .doc(userEmail)
+          .collection('todos')
+          .get();
 
-      print('Documents fetched: ${querySnapshot.docs.length}'); 
-
-      todos.value = querySnapshot.docs
-          .map((doc) => Todo.fromJson(doc.data() as Map<String, dynamic>))
-          .toList();
+      todos.value =
+          querySnapshot.docs.map((doc) => Todo.fromJson(doc.data())).toList();
     } catch (e) {
       print('Error fetching todos: $e');
     } finally {
@@ -42,60 +34,105 @@ class TodoController extends GetxController {
     }
   }
 
-  Future<void> addTodo(String title) async {
-    try {
-      final userId = Get.find<UserController>().userName.value;
+  Future<void> addTodo(String userEmail, String title) async {
+    if (userEmail.isEmpty) {
+      print("Error: User email is empty");
+      return;
+    }
 
+    try {
       final newTodo = Todo(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         title: title,
         isCompleted: false,
-        userId: userId,
+        userId: userEmail,
         task: '',
       );
 
       await _firestore
           .collection('users')
-          .doc(userId)
+          .doc(userEmail)
           .collection('todos')
           .doc(newTodo.id)
           .set(newTodo.toJson());
 
-      fetchTodos();
+      fetchTodos(userEmail);
     } catch (e) {
       print('Error adding todo: $e');
     }
   }
 
-  Future<void> updateTodo(String id, {required String newTitle}) async {
+  /// Update a todo
+  Future<void> updateTodo({
+    required String userEmail,
+    required String id,
+    required String newTitle,
+  }) async {
+    if (userEmail.isEmpty) {
+      print("Error: User email is empty");
+      return;
+    }
+
     try {
-      final todoDoc = _firestore.collection('todos').doc(id);
-      await todoDoc.update({
-        'title': newTitle,
-      });
-      fetchTodos();
+      await _firestore
+          .collection('users')
+          .doc(userEmail)
+          .collection('todos')
+          .doc(id)
+          .update({'title': newTitle});
+
+      fetchTodos(userEmail);
+      print('Todo updated successfully!');
     } catch (e) {
       print('Error updating todo: $e');
     }
   }
 
-  Future<void> removeTodo(String id) async {
+  Future<void> removeTodo(String userEmail, String id) async {
     try {
-      await _firestore.collection('todos').doc(id).delete();
-      fetchTodos();
+      if (userEmail.isEmpty) {
+        print("Error: User email is empty");
+        return;
+      }
+
+      await _firestore
+          .collection('users')
+          .doc(userEmail)
+          .collection('todos')
+          .doc(id)
+          .delete();
+
+      fetchTodos(userEmail);
+      print('Todo deleted successfully');
     } catch (e) {
       print('Error removing todo: $e');
     }
   }
 
-  Future<void> toggleTodoStatus(String id) async {
+  Future<void> toggleTodoStatus(String userEmail, String id) async {
+    if (userEmail.isEmpty) {
+      print("Error: User email is empty");
+      return;
+    }
+
     try {
-      final todoDoc = _firestore.collection('todos').doc(id);
-      final todo = await todoDoc.get();
-      if (todo.exists) {
-        final currentStatus = todo['isCompleted'] as bool;
-        await todoDoc.update({'isCompleted': !currentStatus});
-        fetchTodos();
+      final todoDoc = await _firestore
+          .collection('users')
+          .doc(userEmail)
+          .collection('todos')
+          .doc(id)
+          .get();
+
+      if (todoDoc.exists) {
+        final currentStatus = todoDoc['isCompleted'] as bool;
+        await _firestore
+            .collection('users')
+            .doc(userEmail)
+            .collection('todos')
+            .doc(id)
+            .update({'isCompleted': !currentStatus});
+
+        fetchTodos(userEmail);
       }
     } catch (e) {
       print('Error toggling todo status: $e');
@@ -141,9 +178,11 @@ class ThemeChanger extends GetxController {
 
 class UserController extends GetxController {
   var userId = ''.obs;
-  var userName = ''.obs;
-  var userEmail = ''.obs;
+  var email = ''.obs;
+  var username = ''.obs;
   var isLoggedIn = false.obs;
+
+  final box = GetStorage();
 
   @override
   void onInit() {
@@ -151,53 +190,91 @@ class UserController extends GetxController {
     fetchUserDetails();
   }
 
-  // Fetch user details from Firebase or SharedPreferences
   Future<void> fetchUserDetails() async {
     User? user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
-      // If user is logged in, get details from Firebase
-      userId.value = user.uid;
-      userName.value = user.displayName ?? 'User';
-      userEmail.value = user.email ?? '';
-      isLoggedIn.value = true;
+  
+      try {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (userDoc.exists) {
+     
+          username.value =
+              userDoc['username'] ?? 'User'; 
+          email.value = user.email ?? '';
+          userId.value = user.uid;
+          isLoggedIn.value = true;
+        } else {
+          // If user document doesn't exist, save new user data to Firestore
+          username.value = 'User'; // Default username if not found
+          email.value = user.email ?? '';
+          userId.value = user.uid;
+
+          // Save user details to Firestore
+          await saveUserDetails(username.value, email.value, userId.value);
+        }
+
+        // Save user details locally
+        _saveUserDetails(username.value, email.value, userId.value);
+
+        // If TodoController is registered, fetch todos
+        if (Get.isRegistered<TodoController>()) {
+          Get.find<TodoController>().fetchTodos(email.value);
+        }
+      } catch (e) {
+        print('Error fetching user details: $e');
+      }
     } else {
-      // If no user is logged in, fetch details from SharedPreferences
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? storedUserName = prefs.getString('userName') ?? 'Guest';
-      userName.value = storedUserName;
-      userId.value = ''; // No Firebase user
-      isLoggedIn.value = false;
+      // If user is not logged in, load from local storage
+      username.value = box.read('username') ?? 'Guest';
+      email.value = box.read('email') ?? '';
+      userId.value = box.read('userId') ?? '';
+      isLoggedIn.value = userId.isNotEmpty;
+
+      // If TodoController is registered, fetch todos
+      if (Get.isRegistered<TodoController>()) {
+        Get.find<TodoController>().fetchTodos(email.value);
+      }
     }
   }
 
-  // Log in user (in case Firebase Auth is not used)
-  void loginUser(String name, String email) {
-    isLoggedIn.value = true;
-    userName.value = name;
-    userEmail.value = email;
-    _saveUserDetailsToLocalStorage(name);
+  Future<void> saveUserDetails(
+      String username, String email, String userId) async {
+    try {
+      // Save to Firestore
+      await FirebaseFirestore.instance.collection('users').doc(userId).set({
+        'username': username,
+        'email': email,
+      });
+    } catch (e) {
+      print('Error saving user details: $e');
+    }
   }
 
-  // Log out user and clear data
+  void _saveUserDetails(String name, String userEmail, String id) {
+    // Save user details locally
+    box.write('username', name);
+    box.write('email', userEmail);
+    box.write('userId', id);
+  }
+
+  /// Logout and clear stored data
   Future<void> signOut() async {
     await FirebaseAuth.instance.signOut();
     userId.value = '';
-    userName.value = 'Guest';
-    userEmail.value = '';
+    email.value = '';
+    username.value = 'Guest';
     isLoggedIn.value = false;
-    _clearUserDetailsFromLocalStorage();
+    _clearUserDetails();
   }
 
-  // Save user details to SharedPreferences
-  Future<void> _saveUserDetailsToLocalStorage(String name) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('userName', name);
-  }
-
-  // Clear user details from SharedPreferences
-  Future<void> _clearUserDetailsFromLocalStorage() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.remove('userName');
+  void _clearUserDetails() {
+    box.remove('username');
+    box.remove('email');
+    box.remove('userId');
   }
 }

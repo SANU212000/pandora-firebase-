@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+// import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -65,98 +65,12 @@ class AuthMethods {
     }
   }
 
-  Future<void> _fetchUserDetails(String userId, BuildContext context) async {
-    try {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .get();
-
-      if (userDoc.exists) {
-        String username = userDoc['username'];
-        String email = userDoc['email'];
-        String phoneNumber = userDoc['phoneNumber'];
-
-        _showAccountDetailsDialog(context, username, email, phoneNumber);
-      } else {
-        print('User document not found.');
-      }
-    } catch (e) {
-      print('Error fetching user details: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to fetch user details.')),
-      );
-    }
-  }
-
-  void _showAccountDetailsDialog(
-      BuildContext context, String username, String email, String phoneNumber) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Account Details'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Username: $currentUser!.displayName'),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showEmailNotVerifiedDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Email Not Verified'),
-          content: const Text(
-              'Your email is not verified. Please verify your email before proceeding.'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () async {
-                // Close the dialog
-                Navigator.of(context).pop();
-
-                // Send verification email
-                await sendEmailVerification(_firebaseAuth.currentUser!);
-
-                // Show the snackbar
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text(
-                          'Verification email sent. Please check your inbox.')),
-                );
-              },
-              child: const Text('Resend Verification Email'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Future<UserCredential?> createUserWithEmailAndPassword({
     required String email,
     required String password,
+    required String username, // Added username parameter
     required BuildContext context,
+    required String phoneNumber,
   }) async {
     try {
       // Validate email
@@ -183,12 +97,14 @@ class AuthMethods {
 
       await sendEmailVerification(result.user!);
 
+      // Save user data in Firestore with email as document ID (title)
       await saveUserData(
         uid: result.user!.uid,
         email: email,
-        username: "New User",
+        username: username, // Pass the username here
         phoneNumber: "",
         verified: false,
+        profileImageUrl: '',
       );
 
       return result;
@@ -259,23 +175,27 @@ class AuthMethods {
   Future<void> saveUserData({
     required String uid,
     required String email,
-    required String username,
+    required String username, // Added username field
     required String phoneNumber,
-    bool verified = false,
+    required bool verified,
+    required String profileImageUrl,
   }) async {
     try {
-      FirebaseFirestore firestore = FirebaseFirestore.instance;
-      await firestore.collection('users').doc(uid).set({
-        'email': email,
-        'username': username,
-        'phoneNumber': phoneNumber,
-        'createdAt': FieldValue.serverTimestamp(),
-        'verified': verified,
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(email) // Using email as the document ID (title)
+          .set({
         'uid': uid,
+        'email': email,
+        'username': username, // Store the username
+        'phoneNumber': phoneNumber,
+        'verified': verified,
+        'createdAt': FieldValue.serverTimestamp(),
       });
-      print('User data saved to Firestore.');
+
+      print("User data saved successfully.");
     } catch (e) {
-      print('Error saving user data: $e');
+      print("Error saving user data: $e");
     }
   }
 

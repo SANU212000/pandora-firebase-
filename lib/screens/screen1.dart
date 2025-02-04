@@ -1,18 +1,18 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:path/path.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_list/funtions/auth_fb.dart';
 import 'package:todo_list/funtions/controller.dart';
 import 'package:todo_list/funtions/todo_list.dart';
 import 'package:todo_list/screens/loginpage.dart';
 import 'package:todo_list/screens/add_task.dart';
 import 'package:todo_list/funtions/constants.dart';
+import 'package:todo_list/screens/profile_screen.dart';
 
 class TodoScreen extends StatelessWidget {
   final UserController userController = Get.put(UserController());
   final TodoController todoController = Get.put(TodoController());
-  var isLoading = false.obs;
+  final isLoading = false.obs;
 
   TodoScreen({super.key});
 
@@ -22,21 +22,23 @@ class TodoScreen extends StatelessWidget {
       appBar: AppBar(
         title: Obx(
           () => Text(
-            'Welcome, ${userController.userName.value}', // Using userController for username
-            style: TextStyle(color: kPrimaryColor),
+            'Welcome, ${userController.username.value}',
+            style: const TextStyle(color: kPrimaryColor),
           ),
         ),
+        
         leading: IconButton(
           onPressed: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const LoginScreen(),
+                builder: (context) => ProfileScreen(),
               ),
             );
           },
           icon: const Icon(
-            Icons.edit,
+            size: 30,
+            Icons.account_circle,
             color: kPrimaryColor,
           ),
         ),
@@ -114,6 +116,7 @@ class TodoScreen extends StatelessWidget {
                           itemCount: todoController.todos.length,
                           itemBuilder: (context, index) {
                             final todo = todoController.todos[index];
+
                             final double offset = -30.0 * index;
                             return Transform.translate(
                               offset: Offset(4, offset),
@@ -150,7 +153,8 @@ class TodoScreen extends StatelessWidget {
                                   );
                                 },
                                 onDismissed: (direction) {
-                                  todoController.removeTodo(todo.id);
+                                  todoController.removeTodo(
+                                      todo.userId, todo.id);
                                   Get.snackbar(
                                     'Task Deleted',
                                     '${todo.id}has been removed.',
@@ -195,6 +199,8 @@ class TodoScreen extends StatelessWidget {
     );
   }
 
+  String userEmail = FirebaseAuth.instance.currentUser?.email ?? "";
+
   Widget buildStackedTaskTile(Todo todo, BuildContext context) {
     return Container(
       height: 130,
@@ -228,7 +234,7 @@ class TodoScreen extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.edit, color: Colors.white),
               onPressed: () {
-                showUpdateDialog(context, todo.id, todo.title);
+                showUpdateDialog(context, userEmail, todo.id, todo.title);
               },
             ),
             Transform.scale(
@@ -237,7 +243,7 @@ class TodoScreen extends StatelessWidget {
                 value: todo.isCompleted,
                 onChanged: (bool? value) async {
                   if (value != null) {
-                    await todoController.toggleTodoStatus(todo.id);
+                    await todoController.toggleTodoStatus(todo.userId, todo.id);
                   }
                 },
                 shape: RoundedRectangleBorder(
@@ -253,7 +259,8 @@ class TodoScreen extends StatelessWidget {
     );
   }
 
-  void showUpdateDialog(BuildContext context, String id, String currentTitle) {
+  void showUpdateDialog(
+      BuildContext context, String userEmail, String id, String currentTitle) {
     final TextEditingController updateController =
         TextEditingController(text: currentTitle);
 
@@ -277,8 +284,9 @@ class TodoScreen extends StatelessWidget {
               onPressed: () async {
                 if (updateController.text.isNotEmpty) {
                   await todoController.updateTodo(
-                    id,
-                    newTitle: updateController.text,
+                    userEmail: userEmail, // Pass 'userEmail' correctly
+                    id: id, // Pass 'id' to the update method
+                    newTitle: updateController.text, // The new title
                   );
                   Navigator.of(context).pop();
 
@@ -297,7 +305,6 @@ class TodoScreen extends StatelessWidget {
     );
   }
 }
-
 
   // Future<void> signOut() async {
   //   try {

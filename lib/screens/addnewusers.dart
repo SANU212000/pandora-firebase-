@@ -7,8 +7,7 @@ import 'package:todo_list/screens/otpscreen.dart';
 
 class AddNewUser extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _UserNameController = TextEditingController();
-  // final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _userNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -45,7 +44,7 @@ class AddNewUser extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     TextFormField(
-                      controller: _UserNameController,
+                      controller: _userNameController,
                       decoration:
                           const InputDecoration(labelText: 'First Name'),
                       validator: (value) {
@@ -55,17 +54,6 @@ class AddNewUser extends StatelessWidget {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 10),
-                    // TextFormField(
-                    //   controller: _lastNameController,
-                    //   decoration: const InputDecoration(labelText: 'Last Name'),
-                    //   validator: (value) {
-                    //     if (value == null || value.isEmpty) {
-                    //       return 'Please enter your last name';
-                    //     }
-                    //     return null;
-                    //   },
-                    // ),
                     const SizedBox(height: 10),
                     TextFormField(
                       controller: _emailController,
@@ -117,13 +105,15 @@ class AddNewUser extends StatelessWidget {
                           UserCredential? userCredential =
                               await authMethods.createUserWithEmailAndPassword(
                             email: _emailController.text,
+                            username: _userNameController.text,
                             password: _passwordController.text,
                             context: context,
+                            phoneNumber: _phoneController.text,
                           );
 
                           if (userCredential != null) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
+                              const SnackBar(
                                 content: Text(
                                     'Sign-up successful! Please verify your email.'),
                                 backgroundColor: Colors.green,
@@ -133,9 +123,10 @@ class AddNewUser extends StatelessWidget {
                             await authMethods.saveUserData(
                               uid: userCredential.user!.uid,
                               email: _emailController.text,
-                              username: _UserNameController.text,
+                              username: _userNameController.text,
                               phoneNumber: _phoneController.text,
                               verified: false,
+                              profileImageUrl: '',
                             );
 
                             Navigator.pushReplacement(
@@ -146,7 +137,7 @@ class AddNewUser extends StatelessWidget {
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
+                              const SnackBar(
                                 content:
                                     Text('Sign-up failed. Please try again.'),
                                 backgroundColor: Colors.red,

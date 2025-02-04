@@ -254,6 +254,7 @@ Future<void> registerUser(BuildContext context, String fullName, String email,
     );
 
     if (response.statusCode == 201) {
+      // ignore: unused_local_variable
       final data = json.decode(response.body);
 
       ScaffoldMessenger.of(context).showSnackBar(

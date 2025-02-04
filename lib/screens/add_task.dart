@@ -83,22 +83,23 @@ class TaskListScreen extends StatelessWidget {
                   ),
                   onPressed: () {
                     if (_textController.text.isNotEmpty) {
-                      Todo newTodo = Todo(
-                        id: DateTime.now()
-                            .millisecondsSinceEpoch
-                            .toString(), // Unique ID
-                        title: _textController
-                            .text, // Task title from the input field
-                        isCompleted: false, // Default value
-                        userId: FirebaseAuth.instance.currentUser!.uid,
-                        task: '', 
-                      );
+                      String userEmail = Get.find<UserController>()
+                          .email
+                          .value; // Get user email
 
-             
-                      controller.addTodo(_textController.text);
-
-                      
-                      _textController.clear();
+                      if (userEmail.isNotEmpty) {
+                        controller.addTodo(userEmail,
+                            _textController.text); // ✅ Pass userEmail & title
+                        _textController.clear();
+                      } else {
+                        Get.snackbar(
+                          'Error',
+                          'User email not found!',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white,
+                        );
+                      }
                     } else {
                       Get.snackbar(
                         'Error',

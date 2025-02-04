@@ -4,7 +4,8 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.5.4
+  sdk: ">=2.18.0 <4.0.0"
+  flutter: ">=3.3.0"
 
 
 dependencies:
@@ -24,9 +25,11 @@ dependencies:
   firebase_auth: ^5.4.0
   google_sign_in:
   cloud_firestore:
-  flutter_svg: ^1.0.0
-  
-
+  flutter_svg: ^2.0.17
+  get_storage: 
+  firebase_storage: 
+  image_picker:
+  amplify_storage_s3: ^1.0.0
 
 
 
@@ -37,8 +40,10 @@ dev_dependencies:
     sdk: flutter
   flutter_native_splash: ^2.4.3
 
-  flutter_lints: ^4.0.0
-
+  flutter_lints: ^5.0.0
+dependency_overrides:
+  http: ^1.0.0
+  uuid: ^3.0.3
 
 flutter:
 
