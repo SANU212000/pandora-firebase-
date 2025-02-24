@@ -47,6 +47,7 @@ class TodoController extends GetxController {
         isCompleted: false,
         userId: userEmail,
         task: '',
+        imageurl: '',
       );
 
       await _firestore
@@ -79,7 +80,9 @@ class TodoController extends GetxController {
           .doc(userEmail)
           .collection('todos')
           .doc(id)
-          .update({'title': newTitle});
+          .update({
+        'title': newTitle,
+      });
 
       fetchTodos(userEmail);
       print('Todo updated successfully!');
@@ -194,7 +197,6 @@ class UserController extends GetxController {
     User? user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
-  
       try {
         DocumentSnapshot userDoc = await FirebaseFirestore.instance
             .collection('users')
@@ -202,9 +204,7 @@ class UserController extends GetxController {
             .get();
 
         if (userDoc.exists) {
-     
-          username.value =
-              userDoc['username'] ?? 'User'; 
+          username.value = userDoc['username'] ?? 'User';
           email.value = user.email ?? '';
           userId.value = user.uid;
           isLoggedIn.value = true;

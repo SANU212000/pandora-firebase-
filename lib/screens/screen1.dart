@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:todo_list/funtions/auth_fb.dart';
 import 'package:todo_list/funtions/controller.dart';
 import 'package:todo_list/funtions/todo_list.dart';
-import 'package:todo_list/screens/loginpage.dart';
 import 'package:todo_list/screens/add_task.dart';
 import 'package:todo_list/funtions/constants.dart';
 import 'package:todo_list/screens/profile_screen.dart';

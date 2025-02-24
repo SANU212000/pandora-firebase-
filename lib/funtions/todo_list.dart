@@ -4,6 +4,7 @@ class Todo {
   bool isCompleted;
   String userId;
   String task;
+  String imageurl;
 
   Todo({
     required this.id,
@@ -11,7 +12,7 @@ class Todo {
     required this.isCompleted,
     required this.userId,
     required this.task,
-  });
+    required this.imageurl  });
 
   factory Todo.fromJson(Map<String, dynamic> json) {
     return Todo(
@@ -20,6 +21,7 @@ class Todo {
       isCompleted: json['isCompleted'] ?? false,
       userId: json['userId'] ?? '',
       task: json['task'] ?? '',
+      imageurl: json['imageurl']?? '',
     );
   }
 
@@ -30,6 +32,7 @@ class Todo {
       'isCompleted': isCompleted,
       'userId': userId,
       'task': task,
+      'imageurl':imageurl,
     };
   }
 }
