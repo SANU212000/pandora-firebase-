@@ -1,0 +1,3 @@
+repository='external project URL'
+module='https://sqlite.org/2023/sqlite-autoconf-3430000.tar.gz'
+tag=''
